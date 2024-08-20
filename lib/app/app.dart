@@ -28,6 +28,25 @@ class MyApp extends StatelessWidget {
               //textos de tipos de titulos o subtitulos
               displayColor: textColor,
             ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Colors
+              .transparent, // Este widget sirve para especificar los colores o estilos del botón al ser seleccionado
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(
+              double.infinity,
+              54,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
         useMaterial3: true,
       ),
       home: const SplashPage(),

@@ -11,7 +11,7 @@ class TaskListPage extends StatefulWidget {
 }
 
 class _TaskListPageState extends State<TaskListPage> {
-  int count = 0;
+  final taskList = <Task>[];
 
   @override
   void initState() {
@@ -45,23 +45,99 @@ class _TaskListPageState extends State<TaskListPage> {
           ),
         ),
       ),
-      body: const Column(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Header(),
-          Expanded(child: _TaskList()),
+          const Header(),
+          Expanded(
+              child: _TaskList(
+            taskList,
+            onTaskDoneChange: (task) {
+              task.doneTask = !task.doneTask;
+              setState(() {});
+            },
+          )),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () => _showNewTaskModal(context),
+        /*() {
           setState(() {
             //Esto sirve para actualizar la pantalla de la app.
             count++;
           });
-        },
+        },*/
         child: const Icon(
           Icons.add,
         ),
+      ),
+    );
+  }
+
+  void _showNewTaskModal(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled:
+            true, // Esto sirve para qué se se adapte el contenedor a los elementos qué contiene este y el scroll lo controla este widget
+        builder: (_) => _NewTaskModal(
+              onTaskCreated: (Task task) {
+                setState(() {
+                  taskList.add(task);
+                });
+              },
+            ));
+  }
+}
+
+class _NewTaskModal extends StatelessWidget {
+  _NewTaskModal({super.key, required this.onTaskCreated});
+
+  final _controller = TextEditingController();
+  final void Function(Task task) onTaskCreated;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+          top: 23,
+          left: 33,
+          right: 33,
+          bottom: MediaQuery.of(context).viewInsets.bottom +
+              10), // Esto hace qué el modal no sea ocultado por el teclado del telefono
+      //padding: const EdgeInsets.symmetric(horizontal: 33, vertical: 23),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(21)),
+        color: Colors.white,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const TitleAppH1('Nueva Tarea'),
+          const SizedBox(height: 26),
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              filled: true, //Esto es para darle un color de relleno
+              fillColor: Colors.white, //Aquí le asignamos el color del relleno
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              hintText: 'Descripción de la Tarea',
+            ),
+          ),
+          const SizedBox(height: 26),
+          ElevatedButton(
+            onPressed: () {
+              if (_controller.text.isNotEmpty) {
+                final task = Task(_controller.text);
+                onTaskCreated(task);
+                Navigator.of(context).pop();
+              }
+            },
+            child: Text('Guardar'),
+          ),
+        ],
       ),
     );
   }
@@ -152,19 +228,12 @@ class Header extends StatelessWidget {
   }
 }
 
-class _TaskList extends StatefulWidget {
-  const _TaskList({super.key});
+class _TaskList extends StatelessWidget {
+  const _TaskList(this.taskList, {super.key, required this.onTaskDoneChange});
 
-  @override
-  State<_TaskList> createState() => _TaskListState();
-}
+  final List<Task> taskList;
+  final void Function(Task task) onTaskDoneChange;
 
-class _TaskListState extends State<_TaskList> {
-  final taskList = <Task>[
-    Task('Sacar al Perro'),
-    Task('Hacer las compras'),
-    Task('Ir al Partido'),
-  ];
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -178,10 +247,7 @@ class _TaskListState extends State<_TaskList> {
               itemBuilder: (context, index) {
                 return _TaskItem(
                   taskList[index],
-                  onTap: () {
-                    taskList[index].doneTask = !taskList[index].doneTask;
-                    setState(() {});
-                  },
+                  onTap: () => onTaskDoneChange(taskList[index]),
                 );
               },
               separatorBuilder: (_, __) => const SizedBox(height: 16),
