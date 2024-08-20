@@ -62,6 +62,7 @@ flutter:
   assets:
     - assets/images/shape.png
     - assets/images/onboarding-image.png
+    - assets/images/tasks-list-image.png
   
    #   - images/a_dot_ham.jpeg
 
