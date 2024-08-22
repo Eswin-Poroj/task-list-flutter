@@ -1,91 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:task_list/app/model/task.dart';
-import 'package:task_list/app/repository/task_repository.dart';
+//import 'package:task_list/app/repository/task_repository.dart';
 import 'package:task_list/app/view/componets/shape.dart';
 import 'package:task_list/app/view/componets/title.dart';
+import 'package:task_list/app/view/task_list/task_provider.dart';
 
-class TaskListPage extends StatefulWidget {
+class TaskListPage extends StatelessWidget {
   const TaskListPage({super.key});
 
-  @override
-  State<TaskListPage> createState() => _TaskListPageState();
-}
-
-class _TaskListPageState extends State<TaskListPage> {
-  final TaskRepository taskRepository = TaskRepository();
-
-  @override
+  /*@override
   Future<void> initState() async {
     super.initState();
-    //Esto sirve para actualizar el estado de una pantalla que va a iniciar
-    //Esto es necesario para inicializar estados
-  }
+    Esto sirve para actualizar el estado de una pantalla que va a iniciar
+    Esto es necesario para inicializar estados
+  }*/
 
-  @override
-  void dispose() {
-    super.dispose();
-    // este metodo se ejecuta justo antes de eliminar la instancia de esté widget
-    // Esto es interesante para liberar recursos, qué lo vamos a necesitar cuando queramos eliminar este widget
-    // Esto sirve para limpiar los datos
-  }
+  //@override
+  //void dispose() {
+  //super.dispose();
+  // este metodo se ejecuta justo antes de eliminar la instancia de esté widget
+  // Esto es interesante para liberar recursos, qué lo vamos a necesitar cuando queramos eliminar este widget
+  // Esto sirve para limpiar los datos
+  //}
 
   @override
   Widget build(BuildContext context) {
     //Esto sirve para renderizar la UI
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Task List'),
+    return ChangeNotifierProvider(
+      create: (_) => TaskProvider()..fetchTasks(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Task List'),
 
-        // Esto sirve para retroceder a una página anterior
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-          child: const Center(
-            child: Text('Atras'),
-          ),
-        ),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Header(),
-          Expanded(
-            child: FutureBuilder<List<Task>>(
-              future: taskRepository
-                  .getTasks(), //esto me pregunta que metodo asincrono hay que llamar para cargar este listado de tareas
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('No Existen Tareas'),
-                  );
-                }
-
-                return _TaskList(snapshot.data!, onTaskDoneChange: (task) {
-                  task.doneTask = !task.doneTask;
-                  taskRepository.saveTask(snapshot.data!);
-                  setState(() {});
-                });
-              },
+          // Esto sirve para retroceder a una página anterior
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: const Center(
+              child: Text('Atras'),
             ),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showNewTaskModal(context),
-        /*() {
-          setState(() {
-            //Esto sirve para actualizar la pantalla de la app.
-            count++;
-          });
-        },*/
-        child: const Icon(
-          Icons.add,
         ),
+        body: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Header(),
+            Expanded(child: _TaskList()),
+          ],
+        ),
+        floatingActionButton: Builder(builder: (context) {
+          return FloatingActionButton(
+            onPressed: () => _showNewTaskModal(context),
+            /*() {
+                setState(() {
+                  //Esto sirve para actualizar la pantalla de la app.
+                  count++;
+                });
+              },*/
+            child: const Icon(
+              Icons.add,
+            ),
+          );
+        }),
       ),
     );
   }
@@ -95,19 +73,20 @@ class _TaskListPageState extends State<TaskListPage> {
         context: context,
         isScrollControlled:
             true, // Esto sirve para qué se se adapte el contenedor a los elementos qué contiene este y el scroll lo controla este widget
-        builder: (_) => _NewTaskModal(
-              onTaskCreated: (Task task) {
-                setState(() {});
-              },
+        builder: (_) => ChangeNotifierProvider.value(
+              //Cuando queramos que un provider se comparte entre dos pantallas, lo podermos hacer de está forma
+              value: context.read<TaskProvider>(),
+              child: _NewTaskModal(),
             ));
   }
 }
 
 class _NewTaskModal extends StatelessWidget {
-  _NewTaskModal({super.key, required this.onTaskCreated});
+  _NewTaskModal({super.key});
+  //_NewTaskModal({super.key, required this.onTaskCreated});
 
   final _controller = TextEditingController();
-  final void Function(Task task) onTaskCreated;
+  //final void Function(Task task) onTaskCreated;
 
   @override
   Widget build(BuildContext context) {
@@ -145,11 +124,12 @@ class _NewTaskModal extends StatelessWidget {
             onPressed: () {
               if (_controller.text.isNotEmpty) {
                 final task = Task(_controller.text);
-                onTaskCreated(task);
+//                onTaskCreated(task);
+                context.read<TaskProvider>().addNewTask(task);
                 Navigator.of(context).pop();
               }
             },
-            child: Text('Guardar'),
+            child: const Text('Guardar'),
           ),
         ],
       ),
@@ -243,10 +223,12 @@ class Header extends StatelessWidget {
 }
 
 class _TaskList extends StatelessWidget {
-  const _TaskList(this.taskList, {super.key, required this.onTaskDoneChange});
-
-  final List<Task> taskList;
-  final void Function(Task task) onTaskDoneChange;
+  //const _TaskList(this.taskList, {super.key, required this.onTaskDoneChange});
+  //final List<Task> taskList;
+  //final void Function(Task task) onTaskDoneChange;
+  const _TaskList({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -256,18 +238,24 @@ class _TaskList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const TitleAppH1('Tareas'),
-          Expanded(
-            child: ListView.separated(
+          Expanded(child: Consumer<TaskProvider>(builder: (_, provider, __) {
+            if (provider.taskList.isEmpty) {
+              return const Center(
+                child: Text('No hay Tareas'),
+              );
+            }
+            return ListView.separated(
               itemBuilder: (context, index) {
                 return _TaskItem(
-                  taskList[index],
-                  onTap: () => onTaskDoneChange(taskList[index]),
+                  provider.taskList[index],
+                  onTap: () =>
+                      provider.onTaskDoneChange(provider.taskList[index]),
                 );
               },
               separatorBuilder: (_, __) => const SizedBox(height: 16),
-              itemCount: taskList.length,
-            ),
-          ),
+              itemCount: provider.taskList.length,
+            );
+          })),
         ],
       ),
     );

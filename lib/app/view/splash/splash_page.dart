@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_list/app/view/componets/shape.dart';
 import 'package:task_list/app/view/componets/title.dart';
+import 'package:task_list/app/view/home/inherited_widgets.dart';
 import 'package:task_list/app/view/task_list/task_list_page.dart';
 
 class SplashPage extends StatelessWidget {
@@ -30,6 +31,12 @@ class SplashPage extends StatelessWidget {
         const TitleAppH1(
           'Lista de Tareas',
           //color: Colors.blue, (Si queremos agregar color al widget así lo realizamos)
+        ),
+        Text(
+          'Inherited Widget',
+          style: TextStyle(
+            color: SpecialColor.of(context).color,
+          ),
         ),
         const SizedBox(
           height: 21,
