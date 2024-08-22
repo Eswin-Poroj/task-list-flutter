@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:task_list/app/model/task.dart';
+import 'package:task_list/app/repository/task_repository.dart';
 import 'package:task_list/app/view/componets/shape.dart';
 import 'package:task_list/app/view/componets/title.dart';
 
@@ -12,9 +13,10 @@ class TaskListPage extends StatefulWidget {
 
 class _TaskListPageState extends State<TaskListPage> {
   final taskList = <Task>[];
+  final TaskRepository taskRepository = TaskRepository();
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
     //Esto sirve para actualizar el estado de una pantalla que va a iniciar
     //Esto es necesario para inicializar estados
@@ -54,7 +56,9 @@ class _TaskListPageState extends State<TaskListPage> {
             taskList,
             onTaskDoneChange: (task) {
               task.doneTask = !task.doneTask;
-              setState(() {});
+              setState(() {
+                taskRepository.addTask(task);
+              });
             },
           )),
         ],
@@ -81,9 +85,7 @@ class _TaskListPageState extends State<TaskListPage> {
             true, // Esto sirve para qué se se adapte el contenedor a los elementos qué contiene este y el scroll lo controla este widget
         builder: (_) => _NewTaskModal(
               onTaskCreated: (Task task) {
-                setState(() {
-                  taskList.add(task);
-                });
+                setState(() {});
               },
             ));
   }
