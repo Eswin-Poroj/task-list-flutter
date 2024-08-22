@@ -12,7 +12,6 @@ class TaskListPage extends StatefulWidget {
 }
 
 class _TaskListPageState extends State<TaskListPage> {
-  final taskList = <Task>[];
   final TaskRepository taskRepository = TaskRepository();
 
   @override
@@ -52,15 +51,28 @@ class _TaskListPageState extends State<TaskListPage> {
         children: [
           const Header(),
           Expanded(
-              child: _TaskList(
-            taskList,
-            onTaskDoneChange: (task) {
-              task.doneTask = !task.doneTask;
-              setState(() {
-                taskRepository.addTask(task);
-              });
-            },
-          )),
+            child: FutureBuilder<List<Task>>(
+              future: taskRepository
+                  .getTasks(), //esto me pregunta que metodo asincrono hay que llamar para cargar este listado de tareas
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text('No Existen Tareas'),
+                  );
+                }
+
+                return _TaskList(snapshot.data!, onTaskDoneChange: (task) {
+                  task.doneTask = !task.doneTask;
+                  taskRepository.saveTask(snapshot.data!);
+                  setState(() {});
+                });
+              },
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
